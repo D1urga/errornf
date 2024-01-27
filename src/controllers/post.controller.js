@@ -23,9 +23,10 @@ const postContentPost = asyncHandler(async (req, res) => {
   if (!contentFile) {
     throw new ApiError(400, "content file is required");
   }
+  const urlVar = contentFile.url.slice(0, 4) + "s" + contentFile.url.slice(4);
   const contentPostData = await ContentPost.create({
     title,
-    content: contentFile.url,
+    content: urlVar,
     description,
     owner,
   });
