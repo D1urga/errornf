@@ -23,8 +23,10 @@ app.get("/api", (req, res) => {
 
 import userRouter from "./routes/user.routes.js";
 import postContentPostRouter from "./routes/contentPost.routes.js";
+import postContentPostComment from "./routes/contentPostComment.route.js";
 
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/posts", postContentPostRouter);
+app.use("/api/v1/comments", postContentPostComment);
 
 export { app };
