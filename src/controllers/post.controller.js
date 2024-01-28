@@ -39,7 +39,16 @@ const postContentPost = asyncHandler(async (req, res) => {
 });
 
 const getContentPost = asyncHandler(async (req, res) => {
-  const contentPostData = await ContentPost.find({});
+  const contentPostData = await ContentPost.aggregate([
+    {
+      $lookup: {
+        localField: "_id",
+        foreignField: "owner",
+        from: "contentpostcomments",
+        as: "comments",
+      },
+    },
+  ]);
   return res
     .status(201)
     .json(new ApiResponse(200, contentPostData, "data successfully fetched"));
