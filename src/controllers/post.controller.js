@@ -42,12 +42,29 @@ const getContentPost = asyncHandler(async (req, res) => {
   const contentPostData = await ContentPost.aggregate([
     {
       $lookup: {
+        localField: "owner",
+        foreignField: "_id",
+        from: "users",
+        as: "Parentuser",
+        pipeline: [
+          {
+            $project: {
+              username: 1,
+              fullName: 1,
+            },
+          },
+        ],
+      },
+    },
+    {
+      $lookup: {
         localField: "_id",
         foreignField: "owner",
         from: "contentpostcomments",
         as: "comments",
       },
     },
+    { $addFields: { totalComments: { $size: "$comments" } } },
   ]);
   return res
     .status(201)
