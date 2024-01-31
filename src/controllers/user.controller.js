@@ -139,15 +139,7 @@ const getCurrentUser = asyncHandler(async (req, res) => {
 });
 
 const getAllusers = asyncHandler(async (req, res) => {
-  const allUsers = await User.aggregate([
-    {
-      $project: {
-        _id: 1,
-        username: 1,
-        fullName: 1,
-      },
-    },
-  ]);
+  const allUsers = await User.find({});
   res
     .status(200)
     .json(new ApiResponse(200, allUsers, "users sent successfully"));
