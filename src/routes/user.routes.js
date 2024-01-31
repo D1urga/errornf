@@ -1,6 +1,9 @@
 import { Router } from "express";
 import { upload } from "../middlewares/multer.middleware.js";
 import {
+  follow,
+  followingPosts,
+  getAllusers,
   getCurrentUser,
   loginUser,
   logoutUser,
@@ -21,5 +24,8 @@ router.route("/register").post(
 router.route("/login").post(loginUser);
 router.route("/logout").post(verifyJWT, logoutUser);
 router.route("/current-user").get(verifyJWT, getCurrentUser);
+router.route("/allUsers").get(getAllusers);
+router.route("/follow/:followTo/:follower").post(follow);
+router.route("/followingPost").get(followingPosts);
 
 export default router;

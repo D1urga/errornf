@@ -3,6 +3,7 @@ import { ApiError } from "../utils/apiError.js";
 import { User } from "../models/user.model.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/apiResponse.js";
+import { FollowerFollowing } from "../models/followerFollowing.model.js";
 
 const generateAccessAndRefreshToken = async (userId) => {
   try {
@@ -137,4 +138,103 @@ const getCurrentUser = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, req.user, "User fetched successfully"));
 });
 
-export { registerUser, loginUser, logoutUser, getCurrentUser };
+const getAllusers = asyncHandler(async (req, res) => {
+  const allUsers = await User.aggregate([
+    {
+      $project: {
+        _id: 1,
+        username: 1,
+        fullName: 1,
+      },
+    },
+  ]);
+  res
+    .status(200)
+    .json(new ApiResponse(200, allUsers, "users sent successfully"));
+});
+
+const follow = asyncHandler(async (req, res) => {
+  const { followTo, follower } = req.params;
+  if (!followTo && !follower) {
+    throw new ApiError(400, "followTo follower are required");
+  }
+
+  const followerData = await FollowerFollowing.create({
+    followTo,
+    follower,
+  });
+  res
+    .status(200)
+    .json(new ApiResponse(200, followerData, "followed successfully"));
+});
+
+const followingPosts = asyncHandler(async (req, res) => {
+  const postdata = await User.aggregate([
+    {
+      $match: {
+        username: "anoop2",
+      },
+    },
+    {
+      $lookup: {
+        localField: "_id",
+        foreignField: "follower",
+        from: "followerfollowings",
+        as: "allFollowing",
+        pipeline: [
+          {
+            $project: {
+              followTo: 1,
+            },
+          },
+
+          {
+            $lookup: {
+              localField: "followTo",
+              foreignField: "owner",
+              from: "contentposts",
+              as: "allPost",
+              pipeline: [
+                {
+                  $project: {
+                    owner: 1,
+                  },
+                },
+                {
+                  $lookup: {
+                    localField: "_id",
+                    foreignField: "owner",
+                    from: "contentpostcomments",
+                    as: "comments",
+                    pipeline: [
+                      {
+                        $project: {
+                          comment: 1,
+                        },
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+          {
+            $unwind: "$allPost",
+          },
+        ],
+      },
+    },
+  ]);
+  res
+    .status(200)
+    .json(new ApiResponse(200, postdata, "post sent successfully"));
+});
+export {
+  registerUser,
+  loginUser,
+  logoutUser,
+  getCurrentUser,
+  getAllusers,
+  follow,
+  followingPosts,
+};
