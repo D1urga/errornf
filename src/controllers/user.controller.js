@@ -154,7 +154,11 @@ const approveFollower = asyncHandler(async (req, res) => {
     },
   });
   const data = await FollowRequests.findById(followerId);
-  const approveddata = await FollowerFollowing.create({ data });
+  const approveddata = await FollowerFollowing.create({
+    followTo: data.followTo,
+    follower: data.follower,
+    status: data.status,
+  });
 
   res.status(200).json(new ApiResponse(200, approveddata, "approved"));
 });
