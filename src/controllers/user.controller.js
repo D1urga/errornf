@@ -4,6 +4,7 @@ import { User } from "../models/user.model.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 import { FollowerFollowing } from "../models/followerFollowing.model.js";
+import { FollowRequests } from "../models/followRequests.model.js";
 
 const generateAccessAndRefreshToken = async (userId) => {
   try {
@@ -145,15 +146,29 @@ const getAllusers = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, allUsers, "users sent successfully"));
 });
 
+const approveFollower = asyncHandler(async (req, res) => {
+  const { followerId } = req.params;
+  await FollowRequests.findByIdAndUpdate(followerId, {
+    $set: {
+      status: "approved",
+    },
+  });
+  const data = await FollowRequests.findById(followerId);
+  const approveddata = await FollowerFollowing.create(data);
+
+  res.status(200).json(new ApiResponse(200, approveddata, "approved"));
+});
+
 const follow = asyncHandler(async (req, res) => {
   const { followTo, follower } = req.params;
   if (!followTo && !follower) {
     throw new ApiError(400, "followTo follower are required");
   }
 
-  const followerData = await FollowerFollowing.create({
+  const followerData = await FollowRequests.create({
     followTo,
     follower,
+    status: "pending",
   });
   res
     .status(200)
@@ -169,9 +184,9 @@ const followingPosts = asyncHandler(async (req, res) => {
     },
     {
       $lookup: {
+        from: "followerfollowings",
         localField: "_id",
         foreignField: "follower",
-        from: "followerfollowings",
         as: "allFollowing",
         pipeline: [
           {
@@ -187,11 +202,6 @@ const followingPosts = asyncHandler(async (req, res) => {
               from: "contentposts",
               as: "allPost",
               pipeline: [
-                {
-                  $project: {
-                    owner: 1,
-                  },
-                },
                 {
                   $lookup: {
                     localField: "_id",
@@ -210,6 +220,7 @@ const followingPosts = asyncHandler(async (req, res) => {
               ],
             },
           },
+
           {
             $unwind: "$allPost",
           },
@@ -229,4 +240,5 @@ export {
   getAllusers,
   follow,
   followingPosts,
+  approveFollower,
 };

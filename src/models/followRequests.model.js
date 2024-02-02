@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const followerFollowingSchema = new mongoose.Schema(
+const followRequest = new mongoose.Schema(
   {
     followTo: {
       type: mongoose.Schema.Types.ObjectId,
@@ -19,7 +19,4 @@ const followerFollowingSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-export const FollowerFollowing = mongoose.model(
-  "FollowerFollowing",
-  followerFollowingSchema
-);
+export const FollowRequests = mongoose.model("FollowRequests", followRequest);
