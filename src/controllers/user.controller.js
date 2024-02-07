@@ -235,10 +235,12 @@ const follow = asyncHandler(async (req, res) => {
 });
 
 const followingPosts = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const objectId = new ObjectId(id);
   const postdata = await User.aggregate([
     {
       $match: {
-        username: "anoop2",
+        _id: objectId,
       },
     },
     {

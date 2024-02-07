@@ -27,7 +27,7 @@ router.route("/logout").post(verifyJWT, logoutUser);
 router.route("/current-user").get(verifyJWT, getCurrentUser);
 router.route("/allUsers/:currentUser").get(getAllusers);
 router.route("/follow/:followTo/:follower").post(follow);
-router.route("/followingPost").get(followingPosts);
+router.route("/followingPost/:id").get(followingPosts);
 router.route("/approveFollower/:followerId").post(approveFollower);
 
 export default router;
