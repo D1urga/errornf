@@ -5,6 +5,7 @@ import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 import { FollowerFollowing } from "../models/followerFollowing.model.js";
 import { FollowRequests } from "../models/followRequests.model.js";
+import { ObjectId } from "bson";
 
 const generateAccessAndRefreshToken = async (userId) => {
   try {
@@ -140,7 +141,53 @@ const getCurrentUser = asyncHandler(async (req, res) => {
 });
 
 const getAllusers = asyncHandler(async (req, res) => {
-  const allUsers = await User.find({});
+  const { currentUser } = req.params;
+  const objectId = new ObjectId(currentUser);
+
+  const allUsers = await User.aggregate([
+    {
+      $lookup: {
+        localField: "_id",
+        foreignField: "followTo",
+        from: "followerfollowings",
+        as: "followers",
+      },
+    },
+
+    { $addFields: { totalFollowers: { $size: "$followers" } } },
+    {
+      $lookup: {
+        localField: "_id",
+        foreignField: "follower",
+        from: "followerfollowings",
+        as: "following",
+      },
+    },
+
+    { $addFields: { totalFollowing: { $size: "$following" } } },
+    {
+      $addFields: {
+        isFollowing: {
+          $in: [objectId, "$followers.follower"],
+        },
+      },
+    },
+    {
+      $lookup: {
+        localField: "_id",
+        foreignField: "followTo",
+        from: "followrequests",
+        as: "requests",
+      },
+    },
+    {
+      $addFields: {
+        isRequested: {
+          $in: [objectId, "$requests.follower"],
+        },
+      },
+    },
+  ]);
   res
     .status(200)
     .json(new ApiResponse(200, allUsers, "users sent successfully"));
