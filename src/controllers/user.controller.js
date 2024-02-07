@@ -153,7 +153,15 @@ const getAllusers = asyncHandler(async (req, res) => {
         as: "followers",
       },
     },
-
+    {
+      $lookup: {
+        localField: "_id",
+        foreignField: "owner",
+        from: "contentposts",
+        as: "allPost",
+      },
+    },
+    { $addFields: { totalPost: { $size: "$allPost" } } },
     { $addFields: { totalFollowers: { $size: "$followers" } } },
     {
       $lookup: {
