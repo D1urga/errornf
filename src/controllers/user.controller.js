@@ -269,6 +269,10 @@ const getCurrentusers = asyncHandler(async (req, res) => {
 
 const approveFollower = asyncHandler(async (req, res) => {
   const { followerId } = req.params;
+  const isPresent = await FollowRequests.findById(followerId);
+  if (!isPresent) {
+    throw new ApiError(404, "not found ");
+  }
   await FollowRequests.findByIdAndUpdate(followerId, {
     $set: {
       status: "approved",
@@ -280,6 +284,7 @@ const approveFollower = asyncHandler(async (req, res) => {
     follower: data.follower,
     status: data.status,
   });
+  await FollowRequests.findByIdAndDelete(followerId);
 
   res.status(200).json(new ApiResponse(200, approveddata, "approved"));
 });
