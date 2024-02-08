@@ -201,6 +201,72 @@ const getAllusers = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, allUsers, "users sent successfully"));
 });
 
+const getCurrentusers = asyncHandler(async (req, res) => {
+  const { user } = req.params;
+  const objectId = new ObjectId(user);
+
+  const allUsers = await User.aggregate([
+    {
+      $match: {
+        _id: objectId,
+      },
+    },
+    {
+      $lookup: {
+        localField: "_id",
+        foreignField: "followTo",
+        from: "followerfollowings",
+        as: "followers",
+      },
+    },
+    {
+      $lookup: {
+        localField: "_id",
+        foreignField: "owner",
+        from: "contentposts",
+        as: "allPost",
+      },
+    },
+    { $addFields: { totalPost: { $size: "$allPost" } } },
+    { $addFields: { totalFollowers: { $size: "$followers" } } },
+    {
+      $lookup: {
+        localField: "_id",
+        foreignField: "follower",
+        from: "followerfollowings",
+        as: "following",
+      },
+    },
+
+    { $addFields: { totalFollowing: { $size: "$following" } } },
+    // {
+    //   $addFields: {
+    //     isFollowing: {
+    //       $in: [objectId, "$followers.follower"],
+    //     },
+    //   },
+    // },
+    {
+      $lookup: {
+        localField: "_id",
+        foreignField: "followTo",
+        from: "followrequests",
+        as: "requests",
+      },
+    },
+    // {
+    //   $addFields: {
+    //     isRequested: {
+    //       $in: [objectId, "$requests.follower"],
+    //     },
+    //   },
+    // },
+  ]);
+  res
+    .status(200)
+    .json(new ApiResponse(200, allUsers, "users sent successfully"));
+});
+
 const approveFollower = asyncHandler(async (req, res) => {
   const { followerId } = req.params;
   await FollowRequests.findByIdAndUpdate(followerId, {
@@ -302,4 +368,5 @@ export {
   follow,
   followingPosts,
   approveFollower,
+  getCurrentusers,
 };
