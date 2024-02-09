@@ -72,6 +72,38 @@ const postPicturePost = asyncHandler(async (req, res) => {
     .status(201)
     .json(new ApiResponse(200, picturePostData, "post sent successfully"));
 });
+const getPicturePost = asyncHandler(async (req, res) => {
+  const contentPostData = await PicturePost.aggregate([
+    {
+      $lookup: {
+        localField: "owner",
+        foreignField: "_id",
+        from: "users",
+        as: "Parentuser",
+        pipeline: [
+          {
+            $project: {
+              username: 1,
+              fullName: 1,
+            },
+          },
+        ],
+      },
+    },
+    {
+      $lookup: {
+        localField: "_id",
+        foreignField: "owner",
+        from: "picturepostcomments",
+        as: "comments",
+      },
+    },
+    { $addFields: { totalComments: { $size: "$comments" } } },
+  ]);
+  return res
+    .status(201)
+    .json(new ApiResponse(200, contentPostData, "data successfully fetched"));
+});
 
 const getContentPost = asyncHandler(async (req, res) => {
   const contentPostData = await ContentPost.aggregate([
@@ -106,4 +138,4 @@ const getContentPost = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, contentPostData, "data successfully fetched"));
 });
 
-export { postContentPost, getContentPost, postPicturePost };
+export { postContentPost, getContentPost, postPicturePost, getPicturePost };

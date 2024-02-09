@@ -1,6 +1,7 @@
 import { Router } from "express";
 import {
   getContentPost,
+  getPicturePost,
   postContentPost,
   postPicturePost,
 } from "../controllers/post.controller.js";
@@ -16,5 +17,6 @@ router
   .route("/postPicturePost/:owner")
   .post(upload.fields([{ name: "content", maxCount: 1 }]), postPicturePost);
 router.route("/getContentPost").get(getContentPost);
+router.route("/getPicturePost").get(getPicturePost);
 
 export default router;
